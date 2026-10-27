@@ -1,0 +1,138 @@
+{
+  "_comment": "Shared by pytest (services/access/keys.py) and vitest (keyCover.ts).",
+  "cases": [
+    {
+      "held": [
+        "bookkeeper.sales.new"
+      ],
+      "want": "bookkeeper.sales.new",
+      "parent": null,
+      "expect": true,
+      "why": "exact"
+    },
+    {
+      "held": [
+        "bookkeeper"
+      ],
+      "want": "bookkeeper.sales.new",
+      "parent": null,
+      "expect": true,
+      "why": "an ancestor covers its children"
+    },
+    {
+      "held": [
+        "bookkeeper.sales"
+      ],
+      "want": "bookkeeper.sales.new",
+      "parent": null,
+      "expect": true,
+      "why": "a nearer ancestor"
+    },
+    {
+      "held": [
+        "bookkeeper.sales"
+      ],
+      "want": "bookkeeper.salesx",
+      "parent": null,
+      "expect": false,
+      "why": "a letter is not a boundary"
+    },
+    {
+      "held": [
+        "bookkeeper.sales"
+      ],
+      "want": "bookkeeper.purchases.new",
+      "parent": null,
+      "expect": false,
+      "why": "a sibling branch"
+    },
+    {
+      "held": [
+        "banking.operations.import"
+      ],
+      "want": "banking.operations.import-execute",
+      "parent": null,
+      "expect": true,
+      "why": "a hyphenated route of the same family"
+    },
+    {
+      "held": [
+        "banking.operations.transactions"
+      ],
+      "want": "banking.operations.transactions-list",
+      "parent": null,
+      "expect": true,
+      "why": "a hyphenated route of the same family"
+    },
+    {
+      "held": [
+        "banking.operations.import-execute"
+      ],
+      "want": "banking.operations.import",
+      "parent": null,
+      "expect": false,
+      "why": "a specific key does not grant the family"
+    },
+    {
+      "held": [
+        "banking.operations.matching"
+      ],
+      "want": "banking.operations.batch-match",
+      "parent": "banking.operations.matching",
+      "expect": true,
+      "why": "the wanted key's registered parent"
+    },
+    {
+      "held": [
+        "banking.operations.matching"
+      ],
+      "want": "banking.operations.batch-match",
+      "parent": null,
+      "expect": false,
+      "why": "no parent known"
+    },
+    {
+      "held": [
+        "reports.general"
+      ],
+      "want": "reports.gst.f5",
+      "parent": "reports.gst",
+      "expect": false,
+      "why": "a different parent"
+    },
+    {
+      "held": [],
+      "want": "bookkeeper",
+      "parent": null,
+      "expect": false,
+      "why": "nothing held"
+    },
+    {
+      "held": [
+        "bookkeeper"
+      ],
+      "want": "bookkeeper",
+      "parent": null,
+      "expect": true,
+      "why": "exact group key"
+    },
+    {
+      "held": [
+        "a"
+      ],
+      "want": "ab",
+      "parent": null,
+      "expect": false,
+      "why": "plain prefix"
+    },
+    {
+      "held": [
+        "admin"
+      ],
+      "want": "admin.tenants.create",
+      "parent": null,
+      "expect": true,
+      "why": "an admin parent grants its children"
+    }
+  ]
+}
