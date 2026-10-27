@@ -110,7 +110,7 @@ def test_eve_down_denies_unless_there_is_a_recent_answer(env):
     client.down = False
     c.get('/tickets?company=acme', headers=auth(1))
     client.down = True
-    access._doc_ttl = 0                                                              # expired, still recent
+    access.doc_ttl = 0                                                               # expired, still recent
     assert c.get('/tickets?company=acme', headers=auth(1)).status_code == 200        # stale beats locked out
 
 
