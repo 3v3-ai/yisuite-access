@@ -1,10 +1,10 @@
 export { covers } from './keys';
 export * from './reasons';
-export { decide, lapseStage, PLATFORM, READ_ONLY_DAYS } from './decision';
-export type { AppModel, Decision, DecideOptions, Person, WorkspaceAccess } from './decision';
+export { decide, lapseStage, orgAllows, orgLimit, quotaRefusal, PLATFORM, READ_ONLY_DAYS } from './decision';
+export type { AppModel, Decision, DecideOptions, Entitlement, Person, WorkspaceAccess } from './decision';
 export { TableModel } from './tableModel';
 export type { TableModelData } from './tableModel';
-export { remoteVerifier, personFromClaims, lapsedSinceFromDocument, DEFAULT_ISSUER } from './tokens';
+export { remoteVerifier, personFromClaims, entFromClaims, lapsedSinceFromDocument, DEFAULT_ISSUER, ENT_VERSION } from './tokens';
 export type { Verifier } from './tokens';
 export { signatureOk, Dedupe } from './events';
 export { EveClient, EveUnavailable } from './client';

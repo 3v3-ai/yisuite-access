@@ -81,3 +81,47 @@ def test_platform_admin_is_not_plan_limited_but_support_needs_a_workspace():
     admin = Person(user_id=9, platform_role='platform-admin')
     assert go(admin, keys=('ai.assistant',)).allowed
     assert go(Person(user_id=8, platform_role='support'), ws=None).code == reasons.NO_WORKSPACE_ACCESS
+
+
+# ── Eve's resolved entitlement (`ent`) ──────────────────────────────────────
+
+from yisuite_access import ent_from_claims, org_allows, org_limit, quota_refusal
+from yisuite_access.tokens import person_from_claims
+
+ENT = {'b': ['core'], 'add': ['ai.assistant'], 'rm': ['tickets.view'], 'lim': {'tickets_per_month': 100, 'seats': None},
+       'cat': 'h', 'st': 'live'}
+
+
+def test_org_allows_bundles_added_removed_and_platform_keys():
+    assert org_allows(ENT, 'tickets.list', M) is True
+    assert org_allows(ENT, 'tickets.view', M) is False           # removed for this company
+    assert org_allows(ENT, 'ai.assistant', M) is True            # added though 'ai' is not a bundle here
+    assert org_allows(ENT, 'banking.import', M) is False
+    assert org_allows(ENT, 'admin.tenants', M) is True           # platform: the role decides
+
+
+def test_limits_and_quota_refusal():
+    assert org_limit(ENT, 'tickets_per_month') == 100
+    assert org_limit(ENT, 'seats') is None and org_limit(ENT, 'missing') is None and org_limit(None, 'x') is None
+    assert quota_refusal(ENT, 'tickets_per_month', used=99) is None
+    r = quota_refusal(ENT, 'tickets_per_month', used=100, subscribe_url='https://3v3.ai/billing')
+    assert r.code == reasons.QUOTA_EXCEEDED and r.status == 402
+    assert r.body()['allowed'] == 100 and r.body()['used'] == 100 and r.body()['subscribe_url']
+    assert quota_refusal(ENT, 'seats', used=10**6) is None
+
+
+def test_ent_answers_step_3_instead_of_the_plan_key():
+    # An unknown plan key would be refused; with ent present it is never read.
+    p = Person(user_id=1, org_id=5, org_role='owner', plan_key='platinum', plan_status='active', ent={'b': ['core'], 'st': 'live'})
+    assert decide(p, WorkspaceAccess('w', 'owner'), ['tickets.list'], 'GET', '/t', M, now=NOW).allowed
+    d = decide(p, WorkspaceAccess('w', 'owner'), ['banking.import'], 'GET', '/b', M, now=NOW)
+    assert d.code == reasons.PLAN_FEATURE
+
+
+def test_ent_from_claims_reads_the_audience_app_and_the_version():
+    claims = {'sub': '1', 'aud': 'yiflow', 'entv': 1, 'ent': {'yiflow': ENT, 'other': {'b': []}}}
+    assert ent_from_claims(claims) == ENT
+    assert ent_from_claims({**claims, 'aud': ['yiflow']}) == ENT
+    assert ent_from_claims({**claims, 'entv': 2}) is None         # a shape this SDK does not know
+    assert ent_from_claims({**claims, 'aud': 'nope'}) is None
+    assert person_from_claims(claims).ent == ENT

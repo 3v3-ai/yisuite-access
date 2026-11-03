@@ -38,6 +38,15 @@ PEOPLE = {
     'no plan': person(plan_key=None, plan_status=None),
     'unknown plan': person(plan_key='platinum'),
     'unknown status': person(plan_status='frozen'),
+    # Eve's resolved entitlement (`ent`): the plan key is ignored when it is present.
+    'owner ent core': person(plan_key='platinum', ent={'b': ['core'], 'add': [], 'rm': [], 'lim': {}, 'st': 'live'}),
+    'owner ent banking+ai': person(ent={'b': ['core', 'banking', 'ai'], 'add': [], 'rm': [], 'lim': {}, 'st': 'live'}),
+    'owner ent added ai key': person(ent={'b': ['core'], 'add': ['ai.assistant'], 'rm': [], 'lim': {}, 'st': 'live'}),
+    'owner ent removed list key': person(ent={'b': ['core'], 'add': [], 'rm': ['tickets.list'], 'lim': {}, 'st': 'live'}),
+    'owner ent read only': person(ent={'b': ['core', 'banking'], 'add': [], 'rm': [], 'lim': {}, 'st': 'read_only'}),
+    'owner ent locked': person(ent={'b': ['core', 'banking'], 'add': [], 'rm': [], 'lim': {}, 'st': 'locked'}),
+    'owner ent unknown state': person(ent={'b': ['core'], 'add': [], 'rm': [], 'lim': {}, 'st': 'frozen'}),
+    'member ent banking': person(org_role='member', ent={'b': ['core', 'banking'], 'add': [], 'rm': [], 'lim': {}, 'st': 'live'}),
     'platform admin': dict(user_id=9, platform_role='platform-admin'),
     'platform support': dict(user_id=8, platform_role='support'),
 }

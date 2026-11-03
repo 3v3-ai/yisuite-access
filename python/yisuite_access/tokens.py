@@ -27,13 +27,27 @@ class TokenVerifier:
                           options={'require': ['exp', 'iat', 'sub', 'aud', 'iss']})
 
 
+ENT_VERSION = 1
+
+
+def ent_from_claims(claims: dict) -> Optional[dict]:
+    """This app's entitlement from the token (`ent` keyed by the audience app), or None
+    when Eve did not send one or sent a shape this SDK does not know."""
+    if claims.get('entv') != ENT_VERSION:
+        return None
+    aud = claims.get('aud')
+    app = aud[0] if isinstance(aud, list) and len(aud) == 1 else aud
+    ent = (claims.get('ent') or {}).get(app) if isinstance(app, str) else None
+    return ent if isinstance(ent, dict) else None
+
+
 def person_from_claims(claims: dict, lapsed_since: Optional[datetime] = None) -> Person:
     org = claims.get('org') or {}
     plan = claims.get('plan') or {}
     return Person(user_id=int(claims['sub']), email=claims.get('email') or '',
                   platform_role=claims.get('plat'), org_id=org.get('id'), org_type=org.get('type'),
                   org_role=org.get('role'), plan_key=plan.get('key'), plan_status=plan.get('status'),
-                  plan_lapsed_since=lapsed_since)
+                  plan_lapsed_since=lapsed_since, ent=ent_from_claims(claims))
 
 
 def lapsed_since_from_document(doc: dict) -> Optional[datetime]:

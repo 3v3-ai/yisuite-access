@@ -33,12 +33,28 @@ Rules that are only prefixes and lists can use `TableModel` (same table in both 
 
 ## The decision
 
-1 caller, 2 org, 3 plan (live / read-only 30 days / locked), 4 workspace, 5 state (ready open,
+1 caller, 2 org, 3 plan (Eve's `ent` claim when present: the company's bundles, added / removed keys, limits,
+`live` / `read_only` / `locked`; else the plan key through `AppModel.plan_bundles`), 4 workspace, 5 state (ready open,
 suspended read-only, others hidden), 6 feature (role keys, level: viewer = read-only). The first
 refusal wins; anything unknown (plan, status, key) is refused and named `UNKNOWN_<THING>`.
 Codes: `NO_CALLER NO_ORG NO_APP_ACCESS ORG_READ_ONLY ORG_LOCKED PLAN_FEATURE SEAT_LIMIT
 QUOTA_EXCEEDED NO_WORKSPACE_ACCESS WORKSPACE_READ_ONLY WORKSPACE_UNAVAILABLE FEATURE_ACCESS_DENIED`.
 Every refusal body: `{success:false, error, error_code, next_action, subscribe_url?}`.
+
+## Entitlements (no plan names in apps)
+
+Eve resolves what each company may use per app (plan + add-ons + company overrides) and sends it in the
+token as `ent: {<app>: {b, add, rm, lim, cat, st}}` with `entv: 1`. The SDK reads the audience app's entry
+(`ent_from_claims` / `entFromClaims`) and step 3 answers from it alone; `plan_bundles` is then never called.
+
+| Python | Node | Answers |
+| --- | --- | --- |
+| `org_allows(ent, key, model)` | `orgAllows(ent, key, model)` | is the company entitled to the key (capabilities such as multi-currency) |
+| `org_limit(ent, key)` | `orgLimit(ent, key)` | the quota, `None`/`null` = unlimited |
+| `quota_refusal(ent, key, used)` | `quotaRefusal(ent, key, used)` | `QUOTA_EXCEEDED` with `limit`, `used`, `allowed` when a create would pass it |
+
+`bundle_for_key` still names each key's default bundle: it is what the app publishes to Eve
+(`PUT /api/access/catalog`), where admins may move keys between bundles and edit plans.
 
 ## Use
 

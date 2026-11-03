@@ -29,6 +29,18 @@ export interface Person {
   plan_key?: string | null;
   plan_status?: string | null;
   plan_lapsed_since?: Date | string | null;
+  /** This app's entitlement as Eve resolved it for the company; when set it alone answers step 3. */
+  ent?: Entitlement | null;
+}
+
+/** Eve's `ent` claim for one app: bundles, keys added / removed, limits (null = unlimited), state. */
+export interface Entitlement {
+  b?: string[];
+  add?: string[];
+  rm?: string[];
+  lim?: Record<string, number | null>;
+  cat?: string | null;
+  st?: string;
 }
 
 export interface WorkspaceAccess {
@@ -58,8 +70,59 @@ export function lapseStage(since: Date | string | null | undefined, now: Date): 
   return now.getTime() >= s.getTime() + READ_ONLY_DAYS * 86_400_000 ? 'locked' : 'read_only';
 }
 
+const ENT_STATES = ['live', 'read_only', 'locked'];
+const LOCKED_MSG = 'Your subscription ended more than 30 days ago and this workspace is locked. Your data is kept; renew to open it again.';
+const READ_ONLY_MSG = 'Your subscription has ended. Your books are read-only until you renew; you can still view and export everything.';
+
+/** Is the company entitled to `featureKey`? Added / removed keys win; platform keys are judged by role alone. */
+export function orgAllows(ent: Entitlement, featureKey: string, model: AppModel): boolean {
+  if ((ent.rm ?? []).includes(featureKey)) return false;
+  if ((ent.add ?? []).includes(featureKey)) return true;
+  const bundle = model.bundleForKey(featureKey);
+  if (bundle === PLATFORM) return true;
+  return bundle !== null && (ent.b ?? []).includes(bundle);
+}
+
+/** The company's quota for `limitKey`; null = unlimited (absent or null). */
+export function orgLimit(ent: Entitlement | null | undefined, limitKey: string): number | null {
+  const v = ent?.lim?.[limitKey];
+  return v === undefined ? null : v;
+}
+
+/** QUOTA_EXCEEDED when `used + adding` would pass the company's limit, else null. */
+export function quotaRefusal(ent: Entitlement | null | undefined, limitKey: string, used: number, adding = 1,
+                             subscribeUrl?: string): Refusal | null {
+  const allowed = orgLimit(ent, limitKey);
+  if (allowed === null || used + adding <= allowed) return null;
+  return { code: R.QUOTA_EXCEEDED, status: 402,
+           message: `Your plan allows ${allowed.toLocaleString('en-US')} and ${used.toLocaleString('en-US')} are used.`,
+           nextAction: 'Upgrade your plan on 3v3 for more.',
+           extra: { limit: limitKey, used, allowed, ...(subscribeUrl ? { subscribe_url: subscribeUrl } : {}) } };
+}
+
+function entRefusal(ent: Entitlement, keys: string[], method: string, path: string, model: AppModel,
+                    subscribeUrl?: string): Refusal | null {
+  const extra = subscribeUrl ? { subscribe_url: subscribeUrl } : {};
+  const st = ent.st || 'live';
+  if (!ENT_STATES.includes(st)) {
+    return { code: R.unknown('entitlement state ' + st), status: 402,
+             message: `Your organization's subscription is ${st}.`, nextAction: 'Check your plan on 3v3.' };
+  }
+  if (st === 'locked') {
+    if (model.isExport(path)) return null;
+    return { code: R.ORG_LOCKED, status: 402, extra, message: LOCKED_MSG, nextAction: 'Renew your plan on 3v3.' };
+  }
+  if (st === 'read_only' && model.isWrite(method, path)) {
+    return { code: R.ORG_READ_ONLY, status: 402, extra, message: READ_ONLY_MSG, nextAction: 'Renew your plan on 3v3.' };
+  }
+  if (keys.some(k => orgAllows(ent, k, model))) return null;
+  return { code: R.PLAN_FEATURE, status: 402, extra,
+           message: 'Your plan does not include this feature.', nextAction: 'Upgrade your plan on 3v3 to use it.' };
+}
+
 function planRefusal(p: Person, keys: string[], method: string, path: string, model: AppModel,
                      now: Date, subscribeUrl?: string): Refusal | null {
+  if (p.ent) return entRefusal(p.ent, keys, method, path, model, subscribeUrl);
   if (!p.plan_key) return null;                  // no org plan: no plan restriction
   const extra = subscribeUrl ? { subscribe_url: subscribeUrl } : {};
   const bundles = model.planBundles(p.plan_key);
@@ -71,14 +134,10 @@ function planRefusal(p: Person, keys: string[], method: string, path: string, mo
   if (LAPSED.includes(status)) {
     if (lapseStage(p.plan_lapsed_since, now) === 'locked') {
       if (model.isExport(path)) return null;
-      return { code: R.ORG_LOCKED, status: 402, extra,
-               message: 'Your subscription ended more than 30 days ago and this workspace is locked. Your data is kept; renew to open it again.',
-               nextAction: 'Renew your plan on 3v3.' };
+      return { code: R.ORG_LOCKED, status: 402, extra, message: LOCKED_MSG, nextAction: 'Renew your plan on 3v3.' };
     }
     if (model.isWrite(method, path)) {
-      return { code: R.ORG_READ_ONLY, status: 402, extra,
-               message: 'Your subscription has ended. Your books are read-only until you renew; you can still view and export everything.',
-               nextAction: 'Renew your plan on 3v3.' };
+      return { code: R.ORG_READ_ONLY, status: 402, extra, message: READ_ONLY_MSG, nextAction: 'Renew your plan on 3v3.' };
     }
   } else if (!LIVE.includes(status)) {
     return { code: R.unknown('plan status ' + status), status: 402,

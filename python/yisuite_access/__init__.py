@@ -5,9 +5,11 @@ workspaces they may open); this library makes that decision inside an app, the s
 every app. An app declares only its own features, roles and plan bundles (an AppModel).
 """
 
-from .decision import AppModel, Decision, Person, WorkspaceAccess, decide
+from .decision import AppModel, Decision, Person, WorkspaceAccess, decide, org_allows, org_limit, quota_refusal
 from .keys import covers
 from .reasons import Refusal
+from .tokens import ent_from_claims
 
-__all__ = ['AppModel', 'Decision', 'Person', 'WorkspaceAccess', 'decide', 'covers', 'Refusal']
+__all__ = ['AppModel', 'Decision', 'Person', 'WorkspaceAccess', 'decide', 'covers', 'Refusal',
+           'org_allows', 'org_limit', 'quota_refusal', 'ent_from_claims']
 __version__ = '0.1.0'
