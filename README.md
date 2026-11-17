@@ -94,3 +94,21 @@ Run: `cd python && pip install -e '.[flask,test]' fastapi httpx && pytest` / `cd
 `npm run access-admin -- client create <name> <app> access:read,handoff:redeem,workspace:write` (secret shown
 once; the app's `EVE_SERVICE_CLIENT_SECRET`), `... app register <app> --webhook <url> --handoff code --kind <workspace kind>`
 (prints the app's `YISUITE_WEBHOOK_SECRET`).
+
+## Install (Python, from a git tag)
+
+```
+pip install "yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.1#subdirectory=python"
+```
+
+In `pyproject.toml`:
+
+```
+"yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.1#subdirectory=python",
+```
+
+Use `[flask]` for Flask apps. Pin the tag; never a branch. The repo is public, so no token is
+needed; a slim Docker image only needs `git` for the install (install it in the same `RUN` and
+purge it after). Do not add a GitHub token to the build: a wrong token fails even on a public
+repo. The calls to Eve are in
+[CONTRACT.md](CONTRACT.md); versions in [CHANGELOG.md](CHANGELOG.md).

@@ -1,12 +1,13 @@
 [project]
 name = "yisuite-access"
-version = "0.1.0"
+version = "0.1.1"
 description = "One way for every Yisuite app to decide who may do what (Eve decides; apps enforce)."
 requires-python = ">=3.9"
 dependencies = ["PyJWT[crypto]>=2.8", "requests>=2.31"]
 
 [project.optional-dependencies]
 flask = ["Flask>=2.3"]
+fastapi = ["fastapi>=0.100"]
 test = ["pytest>=8"]
 
 [build-system]
