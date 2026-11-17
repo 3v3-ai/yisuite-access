@@ -1,4 +1,4 @@
-# yisuite-access ↔ Eve: the calls (v0.1.0)
+# yisuite-access ↔ Eve: the calls (v0.1.1)
 
 Base: `EVE_API_URL` (default `https://api.3v3.ai`). Every call sends
 `Authorization: Bearer <EVE_SERVICE_CLIENT_SECRET>` and `User-Agent: yisuite-access/<ver> (<app>)`

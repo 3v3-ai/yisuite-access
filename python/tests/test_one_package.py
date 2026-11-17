@@ -32,6 +32,20 @@ def test_explicit_verifier_conforms():
     assert token_conformance.run('yimport', explicit_verify, KEYS) == []
 
 
+def test_conformance_accepts_an_app_user_dict():
+    def user_dict(token, jwk_client):
+        c = env_verify(token, jwk_client)
+        return {'id': c.user_id, 'email': c.email, 'ent': c.ent}
+    assert token_conformance.run('yimport', user_dict, KEYS) == []
+
+
+def test_conformance_catches_a_user_dict_with_wrong_ent():
+    def wrong(token, jwk_client):
+        env_verify(token, jwk_client)
+        return {'id': '42', 'ent': {'features': ['other']}}
+    assert token_conformance.run('yimport', wrong, KEYS)
+
+
 def test_conformance_catches_a_lax_verifier():
     import jwt
 

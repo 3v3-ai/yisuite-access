@@ -98,13 +98,13 @@ once; the app's `EVE_SERVICE_CLIENT_SECRET`), `... app register <app> --webhook 
 ## Install (Python, from a git tag)
 
 ```
-pip install "yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.0#subdirectory=python"
+pip install "yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.1#subdirectory=python"
 ```
 
 In `pyproject.toml`:
 
 ```
-"yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.0#subdirectory=python",
+"yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.1#subdirectory=python",
 ```
 
 Use `[flask]` for Flask apps. Pin the tag; never a branch. The repo is private, so a Docker build

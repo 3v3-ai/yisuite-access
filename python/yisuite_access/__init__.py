@@ -14,4 +14,4 @@ from .tokens import EnvVerifier, EveClaims, TokenVerifier, bearer, ent_from_clai
 __all__ = ['AppModel', 'Decision', 'Person', 'WorkspaceAccess', 'decide', 'covers', 'Refusal',
            'org_allows', 'org_limit', 'quota_refusal', 'ent_from_claims', 'EveClient', 'EveUnavailable',
            'EnvVerifier', 'EveClaims', 'TokenVerifier', 'bearer', 'looks_like_rs256']
-__version__ = '0.1.0'
+__version__ = '0.1.1'

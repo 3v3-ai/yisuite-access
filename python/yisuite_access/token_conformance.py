@@ -7,7 +7,7 @@ An app adds one file to its test suite and runs it in CI:
 
     def verify(token, jwk_client):
         # call YOUR app's verification path with Eve's JWKS replaced by jwk_client;
-        # return the verified claims (dict or object with .ent / .user_id) or raise
+        # return the verified claims, the app's user dict (with 'ent'), or an object with .ent; or raise
         ...
 
     globals().update(make_tests(audience='yimport', verify=verify))
@@ -64,10 +64,13 @@ class TestKeys:
 
 
 def _ent(result):
-    """ent from what the app's verify returned: a claims dict, or an object with .ent."""
+    """ent from what the app's verify returned: raw claims (a dict with `aud`), the app's own
+    user dict (a dict with an `ent` key, already parsed), or an object with `.ent`."""
     if isinstance(result, dict):
-        from .tokens import ent_from_claims
-        return ent_from_claims(result)
+        if 'aud' in result:
+            from .tokens import ent_from_claims
+            return ent_from_claims(result)
+        return result.get('ent')
     return getattr(result, 'ent', None)
 
 

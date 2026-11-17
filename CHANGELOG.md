@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 (2026-11-17)
+- `token_conformance`: an app's verify may return its own user dict (`{'ent': ...}`, no `aud`);
+  the `ent` is read from it instead of being re-parsed as claims (which always gave None).
+  Apps no longer need to wrap the result in an object with `.ent`.
+
 ## 0.1.0 (2026-11-17)
 - One token verifier, folded from the six app copies (dark-factory, invoice_extraction,
   yinvoice_free, project_mm_invoice, Yi.Flow, yingdom): `EnvVerifier`, `EveClaims`
