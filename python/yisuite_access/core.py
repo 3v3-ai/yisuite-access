@@ -23,7 +23,7 @@ class AccessCore:
                  verifier=None, client=None, doc_ttl: float = 30.0, stale_ok: float = 600.0):
         self.app_slug, self.model = app_slug, model
         self.verifier = verifier or TokenVerifier(app_slug, f'{eve_url.rstrip("/")}/.well-known/jwks.json', issuer)
-        self.client = client or EveClient(eve_url, client_secret)
+        self.client = client or EveClient(eve_url, client_secret, app_slug=app_slug)
         self.webhook_secret, self.subscribe_url = webhook_secret, subscribe_url
         self.dedupe = Dedupe()
         self.docs: dict = {}
