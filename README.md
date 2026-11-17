@@ -107,8 +107,8 @@ In `pyproject.toml`:
 "yisuite-access[fastapi] @ git+https://github.com/3v3-ai/yisuite-access.git@v0.1.1#subdirectory=python",
 ```
 
-Use `[flask]` for Flask apps. Pin the tag; never a branch. The repo is private, so a Docker build
-needs a read token (BuildKit secret, e.g. `RUN --mount=type=secret,id=gh_token ...` with
-`git config url."https://x-access-token:$(cat /run/secrets/gh_token)@github.com/".insteadOf
-"https://github.com/"`) or a wheel built in CI and copied in. The calls to Eve are in
+Use `[flask]` for Flask apps. Pin the tag; never a branch. The repo is public, so no token is
+needed; a slim Docker image only needs `git` for the install (install it in the same `RUN` and
+purge it after). Do not add a GitHub token to the build: a wrong token fails even on a public
+repo. The calls to Eve are in
 [CONTRACT.md](CONTRACT.md); versions in [CHANGELOG.md](CHANGELOG.md).
